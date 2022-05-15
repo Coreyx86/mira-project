@@ -1,7 +1,10 @@
 # CHANGEME: Default Orbis Version
+MIRA_PLATFORM=900
 ifeq ($(MIRA_PLATFORM),)
 $(error No firmware version set for MIRA_PLATFORM)
 endif
+
+TOOLCHAIN   := $(OO_PS4_TOOLCHAIN)
 
 # Check to see if we are building in CI/Checking mode
 # Leave empty (erase TRUE) if disabling
@@ -56,26 +59,26 @@ EXTERNAL_INC := ../external
 endif
 
 # Include directory paths
-I_DIRS	:=	-I. -I$(SRC_DIR) -I"$(BSD_INC)" -I$(EXTERNAL_INC) -I$(EXTERNAL_INC)/protobuf-c
+I_DIRS	:=	-I. -I$(SRC_DIR) -I"$(BSD_INC)" -I$(EXTERNAL_INC) -I$(EXTERNAL_INC)/protobuf-c -I/usr/include
 
 # Library directory paths
-L_DIRS	:=	-L.	-Llib
+L_DIRS	:= -L/usr/lib/x86_64-linux-gnu
 
 # Included libraries
-LIBS	:=
+LIBS	+= -lz -lc -lzip
 
 # C Defines
 C_DEFS	:= -D_KERNEL=1 -D_DEBUG -D_STANDALONE -D"MIRA_PLATFORM=${MIRA_PLATFORM}" -DMIRA_UNSUPPORTED_PLATFORMS -D__LP64__ -D_M_X64 -D__amd64__ -D__BSD_VISIBLE
 
 # C++ Flags, -02 Optimizations break shit badly
-CFLAGS	:= $(I_DIRS) $(C_DEFS) -fpic -m64 -O0 -fno-builtin -nodefaultlibs -nostdlib -nostdinc -fcheck-new -ffreestanding -fno-strict-aliasing -fno-exceptions -fno-asynchronous-unwind-tables -Wall -Werror -Wno-unknown-pragmas
+CFLAGS	:= $(I_DIRS) $(C_DEFS) -fpic -m64 -O0 -fno-builtin -nodefaultlibs -nostdlib -nostdinc -fcheck-new -ffreestanding -fno-strict-aliasing -fno-exceptions -fno-asynchronous-unwind-tables -Wall -Werror -Wno-unknown-pragmas -Wunused-but-set-variable
 
 # Assembly flags
 SFLAGS	:= -m64 -nodefaultlibs -nostdlib
 
 # Linker flags
 # -Wl,--build-id=none -T $(SRC_DIR)/link.x --emit-relocs -gc-sections -nmagic --relocatable
-LFLAGS	:= -v $(L_DIRS) -nostdlib -entry="mira_entry" -pie
+LFLAGS	:= -v $(L_DIRS) -nostdlib -entry="mira_entry" -pie -L$(TOOLCHAIN)/lib $(LIBS)
 
 # Calculate the listing of all file paths
 ALL_CPP := $(sort $(shell find $(SRC_DIR)/ -type f -name '*.cpp'))
